@@ -168,7 +168,11 @@ def get_country_from_ip(ip):
 
 # Configure game files directory for Render
 if os.environ.get('RENDER'):
-    GAME_FILES_DIR = '/opt/render/project/src/nakmoto/game_files'
+    GAME_FILES_DIR = '/opt/render/project/src/game_files'
+    # Ensure directory exists
+    os.makedirs(GAME_FILES_DIR, exist_ok=True)
+    app.logger.info(f"Ensuring game files directory exists: {GAME_FILES_DIR}")
+    app.logger.info(f"Directory contents: {os.listdir(GAME_FILES_DIR)}")
 else:
     GAME_FILES_DIR = os.path.join(os.path.dirname(__file__), 'game_files')
 
@@ -296,23 +300,45 @@ def download():
     try:
         # Create a temporary directory
         temp_dir = tempfile.mkdtemp()
+        app.logger.info(f"Created temp directory: {temp_dir}")
+        
         timestamp = datetime.now().strftime('%m%d_%H%M%S')
         unique_id = str(uuid.uuid4())[:8]
         version = "1.2.6"
         
+        # Add logging to debug file paths
+        app.logger.info(f"Game files directory: {GAME_FILES_DIR}")
+        try:
+            app.logger.info(f"Files in game_files directory: {os.listdir(GAME_FILES_DIR)}")
+        except Exception as e:
+            app.logger.error(f"Error listing directory: {str(e)}")
+        
         # Create unique filename
         zip_filename = f"nakmoto_v{version}_{timestamp}_{unique_id}.zip"
         zip_path = os.path.join(temp_dir, zip_filename)
+        app.logger.info(f"Creating zip file at: {zip_path}")
         
         # Create ZIP file
         with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
             # Add game files
             for file_name in ['v1_2_6.exe', 'readme.txt']:
                 file_path = os.path.join(GAME_FILES_DIR, file_name)
+                app.logger.info(f"Trying to add file: {file_path}")
                 if os.path.exists(file_path):
+                    app.logger.info(f"File exists: {file_path}")
                     arcname = os.path.basename(file_path)
                     zipf.write(file_path, arcname)
+                    app.logger.info(f"Successfully added {file_name} to zip")
+                else:
+                    app.logger.error(f"File not found: {file_path}")
         
+        # Verify zip file size
+        zip_size = os.path.getsize(zip_path)
+        app.logger.info(f"Created zip file size: {zip_size} bytes")
+        if zip_size == 0:
+            app.logger.error("Created ZIP file is empty!")
+            return "Error: Empty ZIP file created", 500
+            
         # Track download
         track_download(request, zip_filename)
         
@@ -338,7 +364,7 @@ def download():
         
     except Exception as e:
         app.logger.error(f"Download error: {str(e)}")
-        return "Download failed", 500
+        return f"Download failed: {str(e)}", 500
 
 def track_download(request, filename):
     try:
