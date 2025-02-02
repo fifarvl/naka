@@ -306,13 +306,6 @@ def download():
         unique_id = str(uuid.uuid4())[:8]
         version = "1.2.6"
         
-        # Add logging to debug file paths
-        app.logger.info(f"Game files directory: {GAME_FILES_DIR}")
-        try:
-            app.logger.info(f"Files in game_files directory: {os.listdir(GAME_FILES_DIR)}")
-        except Exception as e:
-            app.logger.error(f"Error listing directory: {str(e)}")
-        
         # Create unique filename
         zip_filename = f"nakmoto_v{version}_{timestamp}_{unique_id}.zip"
         zip_path = os.path.join(temp_dir, zip_filename)
@@ -320,12 +313,9 @@ def download():
         
         # Create ZIP file
         with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
-            # Add game files
             for file_name in ['v1_2_6.exe', 'readme.txt']:
                 file_path = os.path.join(GAME_FILES_DIR, file_name)
-                app.logger.info(f"Trying to add file: {file_path}")
                 if os.path.exists(file_path):
-                    app.logger.info(f"File exists: {file_path}")
                     arcname = os.path.basename(file_path)
                     zipf.write(file_path, arcname)
                     app.logger.info(f"Successfully added {file_name} to zip")
@@ -334,7 +324,6 @@ def download():
         
         # Verify zip file size
         zip_size = os.path.getsize(zip_path)
-        app.logger.info(f"Created zip file size: {zip_size} bytes")
         if zip_size == 0:
             app.logger.error("Created ZIP file is empty!")
             return "Error: Empty ZIP file created", 500
@@ -342,7 +331,7 @@ def download():
         # Track download
         track_download(request, zip_filename)
         
-        # Send file
+        # Send file with improved headers
         response = send_file(
             zip_path,
             as_attachment=True,
@@ -350,7 +339,13 @@ def download():
             mimetype='application/zip'
         )
         
-        # Add headers to prevent caching
+        # Add security and caching headers
+        response.headers["Content-Type"] = "application/zip"
+        response.headers["Content-Disposition"] = f"attachment; filename={zip_filename}"
+        response.headers["Content-Length"] = zip_size
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["Content-Security-Policy"] = "default-src 'self'"
         response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
         response.headers["Pragma"] = "no-cache"
         response.headers["Expires"] = "0"
@@ -407,6 +402,15 @@ def init_db():
 
 # Initialize database tables and admin user on startup
 init_db()
+
+# Add security headers for all responses
+@app.after_request
+def add_security_headers(response):
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['X-Frame-Options'] = 'DENY'
+    response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+    response.headers['Content-Security-Policy'] = "default-src 'self'"
+    return response
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
