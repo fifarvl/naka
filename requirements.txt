@@ -1,0 +1,10 @@
+Flask==2.3.3
+Flask-SQLAlchemy==3.1.1
+Flask-Login==0.6.2
+Werkzeug==2.3.7
+python-dotenv==1.0.0
+gunicorn==21.2.0
+psycopg2-binary==2.9.9
+python-telegram-bot==20.7 
+requests==2.31.0
+geoip2==4.7.0
