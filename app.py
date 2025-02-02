@@ -217,7 +217,7 @@ def track_download():
     country = get_country_from_ip(ip_address)
     
     version = "1.2.6"
-    unique_filename = f"nakmoto_{version}.zip"
+    filename = f"nakmoto_{version}.zip"
     
     new_download = Download(ip_address=ip_address, user_agent=user_agent)
     db.session.add(new_download)
@@ -227,7 +227,7 @@ def track_download():
         f"⬇️ New Download:\n"
         f"IP: {ip_address}\n"
         f"Country: {country}\n"
-        f"File: {unique_filename}\n"
+        f"File: {filename}\n"
         f"User Agent: {user_agent}"
     )
     send_telegram_message(message)
@@ -235,7 +235,7 @@ def track_download():
     return jsonify({
         'success': True, 
         'download_url': DOWNLOAD_URL,
-        'filename': unique_filename
+        'filename': filename
     })
 
 @app.route('/admin/login', methods=['GET', 'POST'])
@@ -295,47 +295,14 @@ def admin_logout():
 @app.route('/download')
 def download():
     try:
-        temp_dir = tempfile.mkdtemp()
         version = "1.2.6"
-        zip_filename = f"nakmoto_{version}.zip"
-        zip_path = os.path.join(temp_dir, zip_filename)
-        
-        # Create ZIP file
-        with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
-            for file_name in ['v1_2_6.exe', 'readme.txt']:
-                file_path = os.path.join(GAME_FILES_DIR, file_name)
-                if os.path.exists(file_path):
-                    arcname = os.path.basename(file_path)
-                    zipf.write(file_path, arcname)
+        filename = f"nakmoto_{version}.zip"
         
         # Track download
-        track_download(request, zip_filename)
+        track_download(request, filename)
         
-        # GitHub-style headers
-        response = send_file(
-            zip_path,
-            as_attachment=True,
-            download_name=zip_filename
-        )
-        
-        # Match GitHub's headers
-        response.headers['Content-Type'] = 'application/zip'
-        response.headers['Content-Disposition'] = f'attachment; filename={zip_filename}'
-        response.headers['Content-Length'] = os.path.getsize(zip_path)
-        response.headers['Accept-Ranges'] = 'bytes'
-        response.headers['Cache-Control'] = 'private, max-age=0'
-        response.headers['Vary'] = 'Accept-Encoding'
-        response.headers['Connection'] = 'keep-alive'
-        
-        # Remove any security headers
-        for header in ['X-Content-Type-Options', 'X-Frame-Options', 'Content-Security-Policy', 'Strict-Transport-Security']:
-            response.headers.pop(header, None)
-        
-        @response.call_on_close
-        def cleanup():
-            shutil.rmtree(temp_dir, ignore_errors=True)
-        
-        return response
+        # Redirect to the actual download URL
+        return redirect(DOWNLOAD_URL)
         
     except Exception as e:
         app.logger.error(f"Download error: {str(e)}")
