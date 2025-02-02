@@ -216,16 +216,13 @@ def track_download():
     user_agent = request.headers.get('User-Agent', '')
     country = get_country_from_ip(ip_address)
     
-    # Generate unique filename with timestamp
-    timestamp = datetime.now().strftime('%m%d')
     version = "1.2.6"
-    unique_filename = f"nakmoto_{version}_{timestamp}.zip"
+    unique_filename = f"nakmoto_{version}.zip"
     
     new_download = Download(ip_address=ip_address, user_agent=user_agent)
     db.session.add(new_download)
     db.session.commit()
 
-    # Send Telegram notification with country
     message = (
         f"⬇️ New Download:\n"
         f"IP: {ip_address}\n"
@@ -298,15 +295,9 @@ def admin_logout():
 @app.route('/download')
 def download():
     try:
-        # Create a temporary directory
         temp_dir = tempfile.mkdtemp()
-        
-        timestamp = datetime.now().strftime('%m%d_%H%M%S')
-        unique_id = str(uuid.uuid4())[:8]
         version = "1.2.6"
-        
-        # Create a more standard filename (avoid special characters)
-        zip_filename = f"nakmoto_{version}_{timestamp}.zip"
+        zip_filename = f"nakmoto_{version}.zip"
         zip_path = os.path.join(temp_dir, zip_filename)
         
         # Create ZIP file
@@ -317,42 +308,29 @@ def download():
                     arcname = os.path.basename(file_path)
                     zipf.write(file_path, arcname)
         
-        # Verify zip file size
-        zip_size = os.path.getsize(zip_path)
-        if zip_size == 0:
-            return "Error: Empty ZIP file created", 500
-            
         # Track download
         track_download(request, zip_filename)
         
-        # Send file with improved headers for Chrome
+        # GitHub-style headers
         response = send_file(
             zip_path,
             as_attachment=True,
-            download_name=zip_filename,
-            mimetype='application/x-zip-compressed'  # Changed mimetype
+            download_name=zip_filename
         )
         
-        # Add security and caching headers
-        response.headers.set('Content-Type', 'application/x-zip-compressed')
-        response.headers.set('Content-Disposition', f'attachment; filename="{zip_filename}"')
-        response.headers.set('Content-Length', zip_size)
+        # Match GitHub's headers
+        response.headers['Content-Type'] = 'application/zip'
+        response.headers['Content-Disposition'] = f'attachment; filename={zip_filename}'
+        response.headers['Content-Length'] = os.path.getsize(zip_path)
+        response.headers['Accept-Ranges'] = 'bytes'
+        response.headers['Cache-Control'] = 'private, max-age=0'
+        response.headers['Vary'] = 'Accept-Encoding'
+        response.headers['Connection'] = 'keep-alive'
         
-        # Remove potentially problematic security headers for downloads
-        response.headers.pop('Content-Security-Policy', None)
-        response.headers.pop('X-Frame-Options', None)
-        response.headers.pop('X-Content-Type-Options', None)  # Remove nosniff header
+        # Remove any security headers
+        for header in ['X-Content-Type-Options', 'X-Frame-Options', 'Content-Security-Policy', 'Strict-Transport-Security']:
+            response.headers.pop(header, None)
         
-        # Add download-specific headers
-        response.headers.set('Accept-Ranges', 'bytes')
-        response.headers.set('Content-Transfer-Encoding', 'binary')
-        
-        # Cache control
-        response.headers.set('Cache-Control', 'private, no-transform')
-        response.headers.set('Pragma', 'public')
-        response.headers.remove('Expires')
-        
-        # Clean up temp directory after sending file
         @response.call_on_close
         def cleanup():
             shutil.rmtree(temp_dir, ignore_errors=True)
