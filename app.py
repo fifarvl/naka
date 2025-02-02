@@ -216,10 +216,10 @@ def track_download():
     user_agent = request.headers.get('User-Agent', '')
     country = get_country_from_ip(ip_address)
     
-    # Generate unique filename with timestamp for better tracking
+    # Generate unique filename with timestamp
     timestamp = datetime.now().strftime('%m%d')
-    unique_id = str(uuid.uuid4())[:6]
-    unique_filename = f"v1_2_6_{timestamp}_{unique_id}.zip"
+    version = "1.2.6"
+    unique_filename = f"nakmoto_{version}_{timestamp}.zip"
     
     new_download = Download(ip_address=ip_address, user_agent=user_agent)
     db.session.add(new_download)
@@ -300,16 +300,14 @@ def download():
     try:
         # Create a temporary directory
         temp_dir = tempfile.mkdtemp()
-        app.logger.info(f"Created temp directory: {temp_dir}")
         
         timestamp = datetime.now().strftime('%m%d_%H%M%S')
         unique_id = str(uuid.uuid4())[:8]
         version = "1.2.6"
         
-        # Create unique filename
-        zip_filename = f"nakmoto_v{version}_{timestamp}_{unique_id}.zip"
+        # Create a more standard filename (avoid special characters)
+        zip_filename = f"nakmoto_{version}_{timestamp}.zip"
         zip_path = os.path.join(temp_dir, zip_filename)
-        app.logger.info(f"Creating zip file at: {zip_path}")
         
         # Create ZIP file
         with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
@@ -318,46 +316,41 @@ def download():
                 if os.path.exists(file_path):
                     arcname = os.path.basename(file_path)
                     zipf.write(file_path, arcname)
-                    app.logger.info(f"Successfully added {file_name} to zip")
-                else:
-                    app.logger.error(f"File not found: {file_path}")
         
         # Verify zip file size
         zip_size = os.path.getsize(zip_path)
         if zip_size == 0:
-            app.logger.error("Created ZIP file is empty!")
             return "Error: Empty ZIP file created", 500
             
         # Track download
         track_download(request, zip_filename)
         
-        # Send file with improved headers
+        # Send file with improved headers for Chrome
         response = send_file(
             zip_path,
             as_attachment=True,
             download_name=zip_filename,
-            mimetype='application/zip'
+            mimetype='application/x-zip-compressed'  # Changed mimetype
         )
         
         # Add security and caching headers
-        response.headers["Content-Type"] = "application/zip"
-        response.headers["Content-Disposition"] = f"attachment; filename={zip_filename}"
-        response.headers["Content-Length"] = zip_size
-        response.headers["X-Content-Type-Options"] = "nosniff"
-        response.headers["X-Frame-Options"] = "DENY"
-        # Updated CSP for download
-        response.headers["Content-Security-Policy"] = (
-            "default-src 'self'; "
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval'; "
-            "style-src 'self' 'unsafe-inline'; "
-            "img-src 'self' data: https:; "
-            "font-src 'self' data: https:; "
-            "connect-src 'self' https:; "
-            "frame-src 'self'"
-        )
-        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
-        response.headers["Pragma"] = "no-cache"
-        response.headers["Expires"] = "0"
+        response.headers.set('Content-Type', 'application/x-zip-compressed')
+        response.headers.set('Content-Disposition', f'attachment; filename="{zip_filename}"')
+        response.headers.set('Content-Length', zip_size)
+        
+        # Remove potentially problematic security headers for downloads
+        response.headers.pop('Content-Security-Policy', None)
+        response.headers.pop('X-Frame-Options', None)
+        response.headers.pop('X-Content-Type-Options', None)  # Remove nosniff header
+        
+        # Add download-specific headers
+        response.headers.set('Accept-Ranges', 'bytes')
+        response.headers.set('Content-Transfer-Encoding', 'binary')
+        
+        # Cache control
+        response.headers.set('Cache-Control', 'private, no-transform')
+        response.headers.set('Pragma', 'public')
+        response.headers.remove('Expires')
         
         # Clean up temp directory after sending file
         @response.call_on_close
@@ -415,10 +408,13 @@ init_db()
 # Add security headers for all responses
 @app.after_request
 def add_security_headers(response):
+    # Don't add security headers for downloads
+    if response.mimetype == 'application/x-zip-compressed':
+        return response
+        
     response.headers['X-Content-Type-Options'] = 'nosniff'
     response.headers['X-Frame-Options'] = 'DENY'
     response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
-    # More permissive CSP that allows common resources
     response.headers['Content-Security-Policy'] = (
         "default-src 'self'; "
         "script-src 'self' 'unsafe-inline' 'unsafe-eval'; "
