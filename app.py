@@ -234,7 +234,7 @@ def track_download():
     
     return jsonify({
         'success': True, 
-        'download_url': DOWNLOAD_URL,
+        'download_url': url_for('download', _external=True),
         'filename': filename
     })
 
@@ -295,14 +295,47 @@ def admin_logout():
 @app.route('/download')
 def download():
     try:
+        temp_dir = tempfile.mkdtemp()
         version = "1.2.6"
-        filename = f"nakmoto_{version}.zip"
+        zip_filename = f"nakmoto_{version}.zip"
+        zip_path = os.path.join(temp_dir, zip_filename)
+        
+        # Create ZIP file
+        with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
+            for file_name in ['v1_2_6.exe', 'readme.txt']:
+                file_path = os.path.join(GAME_FILES_DIR, file_name)
+                if os.path.exists(file_path):
+                    arcname = os.path.basename(file_path)
+                    zipf.write(file_path, arcname)
         
         # Track download
-        track_download(request, filename)
+        track_download(request, zip_filename)
         
-        # Redirect to the actual download URL
-        return redirect(DOWNLOAD_URL)
+        # GitHub-style headers
+        response = send_file(
+            zip_path,
+            as_attachment=True,
+            download_name=zip_filename
+        )
+        
+        # Match GitHub's headers
+        response.headers['Content-Type'] = 'application/zip'
+        response.headers['Content-Disposition'] = f'attachment; filename={zip_filename}'
+        response.headers['Content-Length'] = os.path.getsize(zip_path)
+        response.headers['Accept-Ranges'] = 'bytes'
+        response.headers['Cache-Control'] = 'private, max-age=0'
+        response.headers['Vary'] = 'Accept-Encoding'
+        response.headers['Connection'] = 'keep-alive'
+        
+        # Remove any security headers
+        for header in ['X-Content-Type-Options', 'X-Frame-Options', 'Content-Security-Policy', 'Strict-Transport-Security']:
+            response.headers.pop(header, None)
+        
+        @response.call_on_close
+        def cleanup():
+            shutil.rmtree(temp_dir, ignore_errors=True)
+        
+        return response
         
     except Exception as e:
         app.logger.error(f"Download error: {str(e)}")
